@@ -53,7 +53,7 @@ function App() {
 
   return (
     <View style={styles.container}>
-      <Text>Open up App.js to start working on your app! 1.1.4</Text>
+      <Text>Open up App.js to start working on your app! 1.1.7</Text>
       <StatusBar style="auto" />
     </View>
   );
