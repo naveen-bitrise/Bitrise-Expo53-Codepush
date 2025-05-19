@@ -10,6 +10,14 @@ require('dotenv').config();
 const IOS_CODEPUSH_DEPLOYMENT_KEY = process.env.IOS_CODEPUSH_DEPLOYMENT_KEY;
 const ANDROID_CODEPUSH_DEPLOYMENT_KEY = process.env.ANDROID_CODEPUSH_DEPLOYMENT_KEY;
 
+// These should be set as Secrets in your Bitrise workflow
+const APPLE_TEAM_ID = process.env.APPLE_TEAM_ID;
+const IOS_PROVISIONING_PROFILE_UUID = process.env.IOS_PROVISIONING_PROFILE_UUID;
+// Ensure this matches the common name of the certificate you're using (e.g., "Apple Development: Your Name (XXXXXX)")
+// or a more generic type like "Apple Development" or "iPhone Developer".
+// For Ad Hoc or App Store builds, it would be "Apple Distribution" or "iPhone Distribution".
+const IOS_CODE_SIGN_IDENTITY = process.env.IOS_CODE_SIGN_IDENTITY || "iPhone Developer";
+
 // You can add checks here to ensure the environment variables are loaded
 if (!IOS_CODEPUSH_DEPLOYMENT_KEY) {
   console.warn("Warning: IOS_CODEPUSH_DEPLOYMENT_KEY is not set in your .env file. CodePush for iOS might not work correctly.");
@@ -49,7 +57,7 @@ export default ({ config }) => {
       },
       ios: {
         supportsTablet: true,
-        bundleIdentifier: "com.anonymous.BitriseExpo53Codepush"
+        bundleIdentifier: "com.bitrise.BitriseExpo53Codepush"
         // You can add more iOS specific configurations here if needed
       },
       android: {
@@ -84,7 +92,16 @@ export default ({ config }) => {
           "expo-build-properties",
           {
             ios: {
-              deploymentTarget: "15.5"
+              deploymentTarget: "15.5",
+              // === Manual Code Signing Configuration ===
+              appleTeamId: APPLE_TEAM_ID,
+              codeSignStyle: "Manual",
+              // For `provisioningProfileSpecifier`, use the UUID of the profile.
+              // Xcode 13+ can sometimes use the profile name, but UUID is more reliable for scripting.
+              provisioningProfileSpecifier: IOS_PROVISIONING_PROFILE_UUID,
+              // This should match the "Common Name" of the certificate.
+              // e.g., "Apple Development", "iPhone Developer", "Apple Distribution", "iPhone Distribution"
+              codeSignIdentity: IOS_CODE_SIGN_IDENTITY,
             }
 
           }
