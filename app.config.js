@@ -99,7 +99,7 @@ export default ({ config }) => {
 
           }
         ],
-        [
+        /*[
           "./withCustomSigning.js",
           {
             codeSignStyle: "Manual", // or "Automatic"
@@ -107,7 +107,7 @@ export default ({ config }) => {
             provisioningProfileId: IOS_PROVISIONING_PROFILE_UUID,
             codeSignIdentity: IOS_CODE_SIGN_IDENTITY
           }
-        ]
+        ]*/
         // Add other plugins here if you have more
       ]
     }
