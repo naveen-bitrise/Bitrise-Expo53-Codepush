@@ -16,7 +16,8 @@ const IOS_PROVISIONING_PROFILE_UUID = process.env.IOS_PROVISIONING_PROFILE_UUID;
 // Ensure this matches the common name of the certificate you're using (e.g., "Apple Development: Your Name (XXXXXX)")
 // or a more generic type like "Apple Development" or "iPhone Developer".
 // For Ad Hoc or App Store builds, it would be "Apple Distribution" or "iPhone Distribution".
-const IOS_CODE_SIGN_IDENTITY = process.env.IOS_CODE_SIGN_IDENTITY || "iPhone Developer";
+const IOS_CODE_SIGN_IDENTITY = process.env.IOS_CODE_SIGN_IDENTITY || "\"iPhone Developer\""; //Has to be in quotes because of the space in the name
+
 
 // You can add checks here to ensure the environment variables are loaded
 if (!IOS_CODEPUSH_DEPLOYMENT_KEY) {
@@ -57,7 +58,8 @@ export default ({ config }) => {
       },
       ios: {
         supportsTablet: true,
-        bundleIdentifier: "com.bitrise.BitriseExpo53Codepush"
+        bundleIdentifier: "com.bitrise.BitriseExpo53Codepush",
+        //appleTeamId: APPLE_TEAM_ID,
         // You can add more iOS specific configurations here if needed
       },
       android: {
@@ -66,7 +68,7 @@ export default ({ config }) => {
           backgroundColor: "#ffffff"
         },
         edgeToEdgeEnabled: true, // Corresponds to edgeToEdgeEnabled in app.json
-        package: "com.anonymous.BitriseExpo53Codepush"
+        package: "com.bitrise.BitriseExpo53Codepush"
         // You can add more Android specific configurations here if needed
       },
       web: {
@@ -92,18 +94,18 @@ export default ({ config }) => {
           "expo-build-properties",
           {
             ios: {
-              deploymentTarget: "15.5",
-              // === Manual Code Signing Configuration ===
-              appleTeamId: APPLE_TEAM_ID,
-              codeSignStyle: "Manual",
-              // For `provisioningProfileSpecifier`, use the UUID of the profile.
-              // Xcode 13+ can sometimes use the profile name, but UUID is more reliable for scripting.
-              provisioningProfileSpecifier: IOS_PROVISIONING_PROFILE_UUID,
-              // This should match the "Common Name" of the certificate.
-              // e.g., "Apple Development", "iPhone Developer", "Apple Distribution", "iPhone Distribution"
-              codeSignIdentity: IOS_CODE_SIGN_IDENTITY,
+              deploymentTarget: "15.5"
             }
 
+          }
+        ],
+        [
+          "./withCustomSigning.js",
+          {
+            codeSignStyle: "Manual", // or "Automatic"
+            teamId: APPLE_TEAM_ID,
+            provisioningProfileId: IOS_PROVISIONING_PROFILE_UUID,
+            codeSignIdentity: IOS_CODE_SIGN_IDENTITY
           }
         ]
         // Add other plugins here if you have more
