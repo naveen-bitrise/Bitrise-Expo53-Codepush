@@ -2,7 +2,10 @@
 
 // Import dotenv to load environment variables from .env file
 // Make sure to call config() at the very beginning
+
 require('dotenv').config();
+
+// The env values should be set as Secrets in your Bitrise workflow
 
 // Retrieve CodePush keys from environment variables
 // It's good practice to provide fallbacks or throw an error if they are not set,
@@ -10,7 +13,7 @@ require('dotenv').config();
 const IOS_CODEPUSH_DEPLOYMENT_KEY = process.env.IOS_CODEPUSH_DEPLOYMENT_KEY;
 const ANDROID_CODEPUSH_DEPLOYMENT_KEY = process.env.ANDROID_CODEPUSH_DEPLOYMENT_KEY;
 
-// These should be set as Secrets in your Bitrise workflow
+
 const APPLE_TEAM_ID = process.env.APPLE_TEAM_ID;
 const IOS_PROVISIONING_PROFILE_UUID = process.env.IOS_PROVISIONING_PROFILE_UUID;
 // Ensure this matches the common name of the certificate you're using (e.g., "Apple Development: Your Name (XXXXXX)")
@@ -46,7 +49,7 @@ export default ({ config }) => {
     expo: {
       name: "Bitrise-Expo53-Codepush",
       slug: "Bitrise-Expo53-Codepush",
-      version: "1.2.0", // You might want to manage this dynamically or keep it static
+      version: "1.2.1", // You might want to manage this dynamically or keep it static
       orientation: "portrait",
       icon: "./assets/icon.png",
       userInterfaceStyle: "light",
@@ -59,7 +62,6 @@ export default ({ config }) => {
       ios: {
         supportsTablet: true,
         bundleIdentifier: "com.bitrise.BitriseExpo53Codepush",
-        //appleTeamId: APPLE_TEAM_ID,
         // You can add more iOS specific configurations here if needed
       },
       android: {
