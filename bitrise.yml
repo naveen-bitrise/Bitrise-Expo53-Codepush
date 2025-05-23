@@ -1,0 +1,417 @@
+format_version: "23"
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+project_type: react-native
+workflows:
+  ios_simulator:
+    description: |
+      Installs dependencies.
+
+      Next steps:
+      - Add tests to your project and configure the workflow to run them.
+      - Check out [Getting started with Expo apps](https://devcenter.bitrise.io/en/getting-started/getting-started-with-expo-apps.html).
+    steps:
+    - git-clone@8: {}
+    - restore-npm-cache@2: {}
+    - npm@1:
+        title: npm install
+        inputs:
+        - command: install
+    - save-npm-cache@1: {}
+    - script@1:
+        title: Exp prebuild
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            # fail if any commands fails
+            set -e
+            # make pipelines' return status equal the last command to exit with a non-zero status, or zero if all commands exit successfully
+            set -o pipefail
+            # debug log
+            set -x
+
+            # write your script here
+            npx expo prebuild
+
+            # or run a script from your repository, like:
+            # bash ./path/to/script.sh
+            # not just bash, e.g.:
+            # ruby ./path/to/script.rb
+    - restore-cocoapods-cache@2: {}
+    - cocoapods-install@2:
+        inputs:
+        - source_root_path: ios
+    - save-cocoapods-cache@1: {}
+    - xcode-build-for-simulator@3:
+        inputs:
+        - configuration: release
+        - xcodebuild_options: |-
+            CODE_SIGN_IDENTITY=""
+            CODE_SIGNING_REQUIRED=NO
+            CODE_SIGNING_ALLOWED=NO
+        - project_path: ios/BitriseExpo53Codepush.xcworkspace
+        - scheme: BitriseExpo53Codepush
+    - deploy-to-bitrise-io@2: {}
+    triggers:
+      push: []
+      pull_request: []
+  ios_release:
+    description: |
+      Installs dependencies.
+
+      Next steps:
+      - Add tests to your project and configure the workflow to run them.
+      - Check out [Getting started with Expo apps](https://devcenter.bitrise.io/en/getting-started/getting-started-with-expo-apps.html).
+    steps:
+    - git-clone@8: {}
+    - restore-npm-cache@2: {}
+    - npm@1:
+        title: npm install
+        inputs:
+        - command: install
+    - save-npm-cache@1: {}
+    - script@1:
+        title: Exp prebuild
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            # fail if any commands fails
+            set -e
+            # make pipelines' return status equal the last command to exit with a non-zero status, or zero if all commands exit successfully
+            set -o pipefail
+            # debug log
+            set -x
+
+            # write your script here
+            npx expo prebuild
+
+            # or run a script from your repository, like:
+            # bash ./path/to/script.sh
+            # not just bash, e.g.:
+            # ruby ./path/to/script.rb
+    - restore-cocoapods-cache@2: {}
+    - cocoapods-install@2:
+        inputs:
+        - source_root_path: ios
+    - save-cocoapods-cache@1: {}
+    - certificate-and-profile-installer@1: {}
+    - xcode-archive@5:
+        inputs:
+        - project_path: ios/BitriseExpo53Codepush.xcworkspace
+        - scheme: BitriseExpo53Codepush
+        - configuration: Release
+        - verbose_log: "yes"
+        - xcodebuild_options: "CODE_SIGN_STYLE=\"Manual\" PROVISIONING_PROFILE=\"595cccbe-9879-4f9d-bf98-83124dd03643\" DEVELOPMENT_TEAM=\"DT2C2FZ7U2\" \nCODE_SIGN_IDENTITY=\"iPhone Developer\""
+    - deploy-to-bitrise-io@2: {}
+    triggers:
+      push: []
+      pull_request:
+      - target_branch: main
+        label: release
+  android_release:
+    description: |
+      Installs dependencies.
+
+      Next steps:
+      - Add tests to your project and configure the workflow to run them.
+      - Check out [Getting started with Expo apps](https://devcenter.bitrise.io/en/getting-started/getting-started-with-expo-apps.html).
+    steps:
+    - git-clone@8: {}
+    - restore-npm-cache@2: {}
+    - npm@1:
+        title: npm install
+        inputs:
+        - command: install
+    - save-npm-cache@1: {}
+    - script@1:
+        title: Expo Prebuild
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            # fail if any commands fails
+            set -e
+            # make pipelines' return status equal the last command to exit with a non-zero status, or zero if all commands exit successfully
+            set -o pipefail
+            # debug log
+            set -x
+
+            # write your script here
+            npx expo prebuild
+
+            # or run a script from your repository, like:
+            # bash ./path/to/script.sh
+            # not just bash, e.g.:
+            # ruby ./path/to/script.rb
+    - android-build@1:
+        inputs:
+        - project_location: $BITRISE_SOURCE_DIR/android
+        - module: app
+        - variant: release
+    - deploy-to-bitrise-io@2: {}
+    triggers:
+      push: []
+      pull_request:
+      - target_branch: main
+        label: release
+  codepush_update_deploy:
+    description: |
+      Installs dependencies.
+
+      Next steps:
+      - Add tests to your project and configure the workflow to run them.
+      - Check out [Getting started with Expo apps](https://devcenter.bitrise.io/en/getting-started/getting-started-with-expo-apps.html).
+    steps:
+    - git-clone@8: {}
+    - restore-npm-cache@2: {}
+    - npm@1:
+        title: npm install
+        inputs:
+        - command: install
+    - save-npm-cache@1: {}
+    - script@1:
+        title: Extract App Version
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -e
+
+            # Create an ESM helper script that uses dynamic import
+            cat > extract-version.mjs << 'EOF'
+            // Convert the file to ESM format on the fly
+            import fs from 'fs';
+            import path from 'path';
+            import { fileURLToPath } from 'url';
+
+            const __dirname = path.dirname(fileURLToPath(import.meta.url));
+            const configPath = path.join(__dirname, 'app.config.js');
+
+            // Read the file content
+            const content = fs.readFileSync(configPath, 'utf8');
+
+            // Extract the version using regex
+            const versionMatch = content.match(/version:\s*["']([^"']+)["']/);
+            if (versionMatch && versionMatch[1]) {
+              console.log(versionMatch[1]);
+            } else {
+              console.error('Version not found in app.config.js');
+              process.exit(1);
+            }
+            EOF
+
+            # Execute the script to get the version
+            APP_VERSION=$(node extract-version.mjs)
+
+            # Check if the version was successfully extracted
+            if [ -z "$APP_VERSION" ]; then
+              echo "Error: Failed to extract version from app.config.js"
+              exit 1
+            fi
+
+            echo "Extracted version: $APP_VERSION"
+
+            # Set the environment variable using envman
+            envman add --key APP_VERSION --value "$APP_VERSION"
+
+            # Clean up the temporary file
+            rm extract-version.mjs
+
+            echo "Successfully set APP_VERSION=$APP_VERSION"
+    - script@1:
+        title: Get Release Management Recipes
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            # fail if any commands fails
+            set -e
+            # make pipelines' return status equal the last command to exit with a non-zero status, or zero if all commands exit successfully
+            set -o pipefail
+            # debug log
+            set -x
+
+            # write your script here
+            git clone https://github.com/bitrise-io/release-management-recipes
+
+            # or run a script from your repository, like:
+            # bash ./path/to/script.sh
+            # not just bash, e.g.:
+            # ruby ./path/to/script.rb
+    - script@1:
+        title: Generate iOS Update Bundle
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            # fail if any commands fails
+            set -e
+            # make pipelines' return status equal the last command to exit with a non-zero status, or zero if all commands exit successfully
+            set -o pipefail
+            # debug log
+            set -x
+
+            # write your script here
+            npx expo export:embed \
+              --entry-file index.js \
+              --platform ios \
+              --dev false \
+              --reset-cache \
+              --bundle-output ./build/main.jsbundle \
+              --assets-dest ./build \
+              --minify false
+
+            # or run a script from your repository, like:
+            # bash ./path/to/script.sh
+            # not just bash, e.g.:
+            # ruby ./path/to/script.rb
+    - script@1:
+        title: Upload iOS Update Bundle to Codepush Server
+        inputs:
+        - content: |
+            #!/usr/bin/env bash
+            # fail if any commands fails
+            set -e
+            # make pipelines' return status equal the last command to exit with a non-zero status, or zero if all commands exit successfully
+            set -o pipefail
+            # debug log
+            set -x
+
+            cd release-management-recipes
+
+            UPLOAD_RESPONSE=$(PACKAGE_PATH=../build/main.jsbundle \
+                            AUTHORIZATION_TOKEN=$BITRISE_API_TOKEN \
+                            CONNECTED_APP_ID=$IOS_CONNECTED_APP_ID \
+                            DEPLOYMENT_ID=$IOS_PROD_DEPLOYMENT_ID \
+                            APP_VERSION=$APP_VERSION /bin/bash ./api/upload_code_push_package.sh 2>&1)
+
+            EXIT_CODE=$?
+
+            if [ $EXIT_CODE -ne 0 ]; then
+              echo "❌ upload_code_push_package.sh failed with exit code $EXIT_CODE"
+              echo "$UPLOAD_RESPONSE"
+              exit $EXIT_CODE
+            fi
+
+            # Take only the last line of the response (final/latest status JSON object)
+            FINAL_RESPONSE=$(echo "$UPLOAD_RESPONSE" | tail -n1)
+
+            # Check explicitly for ERR_INTERNAL or other internal error indicators
+            if echo "$UPLOAD_RESPONSE" | grep -q "ERR_INTERNAL"; then
+              ERROR_MESSAGE=$(echo "$FINAL_RESPONSE" | jq -r '.message' || echo "Unknown error")
+              echo "❌ Server returned internal error: $ERROR_MESSAGE"
+              exit 1
+            fi
+
+            # Now safely parse 'status' and 'status_reason' from the final response line
+            PACKAGE_STATUS=$(echo "$FINAL_RESPONSE" | jq -r '.status' || echo "null")
+            STATUS_REASON=$(echo "$FINAL_RESPONSE" | jq -r '.status_reason' || echo "")
+
+            if [ "$PACKAGE_STATUS" = "processed_valid" ]; then
+              echo "✅ Package uploaded and processed successfully."
+            else
+              echo "⚠️ Package upload unexpected status: $PACKAGE_STATUS - Reason: $STATUS_REASON"
+              exit 1
+            fi
+
+            cd ..
+    - script@1:
+        title: Generate Android Update Bundle
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            # fail if any commands fails
+            set -e
+            # make pipelines' return status equal the last command to exit with a non-zero status, or zero if all commands exit successfully
+            set -o pipefail
+            # debug log
+            set -x
+
+            # write your script here
+            npx expo export:embed \
+              --entry-file index.js \
+              --platform android \
+              --dev false \
+              --reset-cache \
+              --bundle-output ./build/main.jsbundle \
+              --assets-dest ./build \
+              --minify false
+
+            # or run a script from your repository, like:
+            # bash ./path/to/script.sh
+            # not just bash, e.g.:
+            # ruby ./path/to/script.rb
+    - script@1:
+        title: Upload Android Update Bundle to Codepush Server
+        inputs:
+        - content: |
+            #!/usr/bin/env bash
+            # fail if any commands fails
+            set -e
+            # make pipelines' return status equal the last command to exit with a non-zero status, or zero if all commands exit successfully
+            set -o pipefail
+            # debug log
+            set -x
+
+            cd release-management-recipes
+
+            UPLOAD_RESPONSE=$(PACKAGE_PATH=../build/main.jsbundle \
+                            AUTHORIZATION_TOKEN=$BITRISE_API_TOKEN \
+                            CONNECTED_APP_ID=$ANDROID_CONNECTED_APP_ID \
+                            DEPLOYMENT_ID=$ANDROID_PROD_DEPLOYMENT_ID \
+                            APP_VERSION=$APP_VERSION /bin/bash ./api/upload_code_push_package.sh 2>&1)
+
+            EXIT_CODE=$?
+
+            if [ $EXIT_CODE -ne 0 ]; then
+              echo "❌ upload_code_push_package.sh failed with exit code $EXIT_CODE"
+              echo "$UPLOAD_RESPONSE"
+              exit $EXIT_CODE
+            fi
+
+            # Take only the last line of the response (final/latest status JSON object)
+            FINAL_RESPONSE=$(echo "$UPLOAD_RESPONSE" | tail -n1)
+
+            # Check explicitly for ERR_INTERNAL or other internal error indicators
+            if echo "$UPLOAD_RESPONSE" | grep -q "ERR_INTERNAL"; then
+              ERROR_MESSAGE=$(echo "$FINAL_RESPONSE" | jq -r '.message' || echo "Unknown error")
+              echo "❌ Server returned internal error: $ERROR_MESSAGE"
+              exit 1
+            fi
+
+            # Now safely parse 'status' and 'status_reason' from the final response line
+            PACKAGE_STATUS=$(echo "$FINAL_RESPONSE" | jq -r '.status' || echo "null")
+            STATUS_REASON=$(echo "$FINAL_RESPONSE" | jq -r '.status_reason' || echo "")
+
+            if [ "$PACKAGE_STATUS" = "processed_valid" ]; then
+              echo "✅ Package uploaded and processed successfully."
+            else
+              echo "⚠️ Package upload unexpected status: $PACKAGE_STATUS - Reason: $STATUS_REASON"
+              exit 1
+            fi
+
+            cd ..
+    triggers:
+      push: []
+      pull_request:
+      - target_branch: updates
+        label: release-update
+meta:
+  bitrise.io:
+    stack: osx-xcode-16.0.x
+    machine_type_id: g2.mac.medium
+app:
+  envs:
+  - PLATFORM: all
+    opts:
+      is_expand: false
+  - IOS_CODE_SIGN_IDENTITY: '"iPhone Developer"'
+    opts:
+      is_expand: false
+  - IOS_CONNECTED_APP_ID: 7960cc49-5abe-4500-ae41-f3379e4e4214
+    opts:
+      is_expand: false
+  - IOS_PROD_DEPLOYMENT_ID: 855b857e-57bb-4661-bc9a-92853d4bc3dc
+    opts:
+      is_expand: false
+  - ANDROID_CONNECTED_APP_ID: da644fbd-3d8d-4f66-b0e2-3766d6c1ae49
+    opts:
+      is_expand: false
+  - ANDROID_PROD_DEPLOYMENT_ID: eb6cfe68-4ef5-4d8e-bad6-db24d7e113e7
+    opts:
+      is_expand: false
