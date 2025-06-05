@@ -55,6 +55,7 @@ workflows:
       push: []
       pull_request: []
   ios_release:
+    status_report_name: 'Executing <target_id> for <project_title>'
     description: |
       Installs dependencies.
 
@@ -108,6 +109,7 @@ workflows:
       - target_branch: main
         label: release
   android_release:
+    status_report_name: 'Executing <target_id> for <project_title>'
     description: |
       Installs dependencies.
 
@@ -153,6 +155,7 @@ workflows:
       - target_branch: main
         label: release
   codepush_update_deploy:
+    status_report_name: 'Executing <target_id> for <project_title>'
     description: |
       Installs dependencies.
 
