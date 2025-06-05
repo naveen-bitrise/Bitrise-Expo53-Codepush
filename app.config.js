@@ -49,7 +49,7 @@ export default ({ config }) => {
     expo: {
       name: "Bitrise-Expo53-Codepush",
       slug: "Bitrise-Expo53-Codepush",
-      version: "1.2.2", // You might want to manage this dynamically or keep it static
+      version: "1.2.3", // You might want to manage this dynamically or keep it static
       orientation: "portrait",
       icon: "./assets/icon.png",
       userInterfaceStyle: "light",
