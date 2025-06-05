@@ -42,3 +42,4 @@ build/
 commands.rm
 .env
 app.json.bak
+.idea
