@@ -53,7 +53,7 @@ function App() {
 
   return (
     <View style={styles.container}>
-      <Text>Open up App.js to start working on your app! 1.1.7</Text>
+      <Text>Open up App.js to start working on your app! 1.2.1</Text>
       <StatusBar style="auto" />
     </View>
   );
@@ -75,7 +75,7 @@ const codePushOptions = {
   mandatoryInstallMode: codePush.InstallMode.IMMEDIATE,
   updateDialog: {
     appendReleaseDescription: true,
-    title: "Update Available",
+    title: "Update Available!!!",
     descriptionPrefix: "\n\nRelease Notes:\n",
     mandatoryContinueButtonLabel: "Install Now",
     mandatoryUpdateMessage: "An update is available that must be installed.",
