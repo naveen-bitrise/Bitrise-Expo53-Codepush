@@ -1,4 +1,4 @@
-format_version: "23"
+format_version: "13"
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 project_type: react-native
 workflows:
@@ -101,13 +101,18 @@ workflows:
         - scheme: BitriseExpo53Codepush
         - configuration: Release
         - verbose_log: "yes"
-        - xcodebuild_options: "CODE_SIGN_STYLE=\"Manual\" PROVISIONING_PROFILE=\"595cccbe-9879-4f9d-bf98-83124dd03643\" DEVELOPMENT_TEAM=\"DT2C2FZ7U2\" \nCODE_SIGN_IDENTITY=\"iPhone Developer\""
+        - xcodebuild_options: "CODE_SIGN_STYLE=\"Manual\"
+            PROVISIONING_PROFILE=\"595cccbe-9879-4f9d-bf98-83124dd03643\"
+            DEVELOPMENT_TEAM=\"DT2C2FZ7U2\"\ 
+
+            CODE_SIGN_IDENTITY=\"iPhone Developer\""
     - deploy-to-bitrise-io@2: {}
     triggers:
       push: []
       pull_request:
       - target_branch: main
         label: release
+        enabled: false
   android_release:
     status_report_name: 'Executing <target_id> for <project_title>'
     description: |
@@ -154,6 +159,7 @@ workflows:
       pull_request:
       - target_branch: main
         label: release
+        enabled: false
   codepush_update_deploy:
     status_report_name: 'Executing <target_id> for <project_title>'
     description: |
@@ -418,3 +424,12 @@ app:
   - ANDROID_PROD_DEPLOYMENT_ID: eb6cfe68-4ef5-4d8e-bad6-db24d7e113e7
     opts:
       is_expand: false
+pipelines:
+  release:
+    workflows:
+      ios_release: {}
+      android_release: {}
+    triggers:
+      pull_request:
+      - target_branch: main
+        label: release
