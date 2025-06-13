@@ -402,3 +402,4 @@ pipelines:
       pull_request:
       - target_branch: main
         label: release
+    status_report_name: Executing <target_id> for <project_title>
