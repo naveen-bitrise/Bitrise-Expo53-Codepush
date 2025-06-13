@@ -175,8 +175,8 @@ workflows:
             #!/bin/bash
             set -e
 
-            # Extract version directly using grep and sed
-            APP_VERSION=$(grep -o 'version:\s*["'][^"'"'"']*["']' app.config.js | sed 's/version:\s*["'\'']//g' | sed 's/["'\'']//g')
+            # Simpler version using awk
+            APP_VERSION=$(awk -F'"' '/version:/ {print $2}' app.config.js)
 
             # Check if the version was successfully extracted
             if [ -z "$APP_VERSION" ]; then
