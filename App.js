@@ -8,7 +8,8 @@ import {
   TouchableOpacity,
   FlatList,
   Keyboard,
-  Alert
+  Alert,
+  Image
 } from 'react-native';
 import codePush from '@code-push-next/react-native-code-push';
 
@@ -151,7 +152,11 @@ function App() {
     <View style={styles.container}>
       <StatusBar style="auto" />
       <Text style={styles.title}>My To-Dos List</Text>
-      <Text style={styles.codepushInfoText}>CodePush Integrated Expo App v1.2.3 Base</Text>
+      <Text style={styles.codepushInfoText}>CodePush Integrated Expo App v1.2.4 - Update 1 </Text>
+      <Image 
+        source={require('./assets/favicon.png')} 
+        style={styles.image}
+      />
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
@@ -303,6 +308,11 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  image: {
+    width: 50,
+    height: 50,
+    marginTop: 20, // Add some space between the text and image
   },
 });
 
