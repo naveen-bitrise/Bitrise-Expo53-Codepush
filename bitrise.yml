@@ -1,4 +1,4 @@
-format_version: "23"
+format_version: "13"
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 project_type: react-native
 workflows:
@@ -101,13 +101,14 @@ workflows:
         - scheme: BitriseExpo53Codepush
         - configuration: Release
         - verbose_log: "yes"
-        - xcodebuild_options: "CODE_SIGN_STYLE=\"Manual\" PROVISIONING_PROFILE=\"595cccbe-9879-4f9d-bf98-83124dd03643\" DEVELOPMENT_TEAM=\"DT2C2FZ7U2\" \nCODE_SIGN_IDENTITY=\"iPhone Developer\""
+        - xcodebuild_options: "CODE_SIGN_STYLE=\"Manual\"
+            PROVISIONING_PROFILE=\"595cccbe-9879-4f9d-bf98-83124dd03643\"
+            DEVELOPMENT_TEAM=\"DT2C2FZ7U2\"\ 
+
+            CODE_SIGN_IDENTITY=\"iPhone Developer\""
     - deploy-to-bitrise-io@2: {}
     triggers:
       push: []
-      pull_request:
-      - target_branch: main
-        label: release
   android_release:
     status_report_name: 'Executing <target_id> for <project_title>'
     description: |
@@ -151,9 +152,6 @@ workflows:
     - deploy-to-bitrise-io@2: {}
     triggers:
       push: []
-      pull_request:
-      - target_branch: main
-        label: release
   codepush_update_deploy:
     status_report_name: 'Executing <target_id> for <project_title>'
     description: |
@@ -177,31 +175,8 @@ workflows:
             #!/bin/bash
             set -e
 
-            # Create an ESM helper script that uses dynamic import
-            cat > extract-version.mjs << 'EOF'
-            // Convert the file to ESM format on the fly
-            import fs from 'fs';
-            import path from 'path';
-            import { fileURLToPath } from 'url';
-
-            const __dirname = path.dirname(fileURLToPath(import.meta.url));
-            const configPath = path.join(__dirname, 'app.config.js');
-
-            // Read the file content
-            const content = fs.readFileSync(configPath, 'utf8');
-
-            // Extract the version using regex
-            const versionMatch = content.match(/version:\s*["']([^"']+)["']/);
-            if (versionMatch && versionMatch[1]) {
-              console.log(versionMatch[1]);
-            } else {
-              console.error('Version not found in app.config.js');
-              process.exit(1);
-            }
-            EOF
-
-            # Execute the script to get the version
-            APP_VERSION=$(node extract-version.mjs)
+            # Extract version directly using grep and sed
+            APP_VERSION=$(grep -o 'version:\s*["'][^"'"'"']*["']' app.config.js | sed 's/version:\s*["'\'']//g' | sed 's/["'\'']//g')
 
             # Check if the version was successfully extracted
             if [ -z "$APP_VERSION" ]; then
@@ -213,9 +188,6 @@ workflows:
 
             # Set the environment variable using envman
             envman add --key APP_VERSION --value "$APP_VERSION"
-
-            # Clean up the temporary file
-            rm extract-version.mjs
 
             echo "Successfully set APP_VERSION=$APP_VERSION"
     - script@1:
@@ -259,6 +231,9 @@ workflows:
               --assets-dest ./build \
               --minify false
 
+            # Create zip archive
+            zip -r update.zip ./build
+
             # or run a script from your repository, like:
             # bash ./path/to/script.sh
             # not just bash, e.g.:
@@ -277,7 +252,7 @@ workflows:
 
             cd release-management-recipes
 
-            UPLOAD_RESPONSE=$(PACKAGE_PATH=../build/main.jsbundle \
+            UPLOAD_RESPONSE=$(PACKAGE_PATH=../update.zip \
                             AUTHORIZATION_TOKEN=$BITRISE_API_TOKEN \
                             CONNECTED_APP_ID=$IOS_CONNECTED_APP_ID \
                             DEPLOYMENT_ID=$IOS_PROD_DEPLOYMENT_ID \
@@ -307,6 +282,8 @@ workflows:
 
             if [ "$PACKAGE_STATUS" = "processed_valid" ]; then
               echo "✅ Package uploaded and processed successfully."
+              rm -rf ../build.zip 
+              rm -rf ../build
             else
               echo "⚠️ Package upload unexpected status: $PACKAGE_STATUS - Reason: $STATUS_REASON"
               exit 1
@@ -316,7 +293,7 @@ workflows:
     - script@1:
         title: Generate Android Update Bundle
         inputs:
-        - content: |-
+        - content: |
             #!/usr/bin/env bash
             # fail if any commands fails
             set -e
@@ -331,14 +308,12 @@ workflows:
               --platform android \
               --dev false \
               --reset-cache \
-              --bundle-output ./build/main.jsbundle \
+              --bundle-output ./build/index.android.bundle \
               --assets-dest ./build \
               --minify false
 
-            # or run a script from your repository, like:
-            # bash ./path/to/script.sh
-            # not just bash, e.g.:
-            # ruby ./path/to/script.rb
+            # Create zip archive
+            zip -r update.zip ./build
     - script@1:
         title: Upload Android Update Bundle to Codepush Server
         inputs:
@@ -353,7 +328,7 @@ workflows:
 
             cd release-management-recipes
 
-            UPLOAD_RESPONSE=$(PACKAGE_PATH=../build/main.jsbundle \
+            UPLOAD_RESPONSE=$(PACKAGE_PATH=../update.zip \
                             AUTHORIZATION_TOKEN=$BITRISE_API_TOKEN \
                             CONNECTED_APP_ID=$ANDROID_CONNECTED_APP_ID \
                             DEPLOYMENT_ID=$ANDROID_PROD_DEPLOYMENT_ID \
@@ -418,3 +393,13 @@ app:
   - ANDROID_PROD_DEPLOYMENT_ID: eb6cfe68-4ef5-4d8e-bad6-db24d7e113e7
     opts:
       is_expand: false
+pipelines:
+  release:
+    workflows:
+      ios_release: {}
+      android_release: {}
+    triggers:
+      pull_request:
+      - target_branch: main
+        label: release
+    status_report_name: Executing <target_id> for <project_title>
