@@ -12,9 +12,6 @@ In Bitrise add a project and use this repository as the source (you can fork the
 ## Bitrise CodePush Server Setup
 
 1. [Create connected apps](https://devcenter.bitrise.io/en/release-management/getting-started-with-release-management/adding-a-new-app-to-release-management.html) in Release Management, one for ios and another for android. You will see the connected app id in the url of the connect app page. 
-2. Set the connected app id [environment variables](https://devcenter.bitrise.io/en/builds/environment-variables.html#setting-an-env-var-in-the-workflow-editor) in Bitirse CI
-    * IOS_CONNECTED_APP_ID
-    * ANDROID_CONNECTED_APP_ID
 2. For each, create a CodePush Deployment: you can [use the API](https://api.bitrise.io/release-management/api-docs/index.html#/CodePush%20-%20Deployments/CreateCodePushDeployment) to do that.
    You would need:
    * connected-app-id from step 1
@@ -24,7 +21,7 @@ In Bitrise add a project and use this repository as the source (you can fork the
  curl -X 'POST' \
   'https://api.bitrise.io/release-management/v1/connected-apps/<connected-app-id>/code-push/deployments' \
   -H 'accept: application/json' \
-  -H 'authorization: <access-token> \
+  -H 'authorization: <access-token>' \
   -H 'Content-Type: application/json' \
   -d '{
     "name": "prod"
@@ -32,12 +29,14 @@ In Bitrise add a project and use this repository as the source (you can fork the
 
 ```
 3. Create the following [secrets in Bitrise](https://devcenter.bitrise.io/en/builds/secrets.html)
-   * IOS_CODEPUSH_DEPLOYMENT_KEY - set it to `key` from the response in step 2 for ios app
-   * ANDROID_CODEPUSH_DEPLOYMENT_KEY - set it to `key` from the response in step 2 for android app
+   * IOS_PROD_DEPLOYMENT_KEY - set it to `key` from the response in step 2 for ios app
+   * ANDROID_PROD_DEPLOYMENT_KEY - set it to `key` from the response in step 2 for android app
    * BITRISE_API_TOKEN - set it to the value to the personal access token or workspace api token used in step 2
-4. The `id` from response in step 2 has to be set as the value for [Bitirse env variables](https://devcenter.bitrise.io/en/builds/environment-variables.html#setting-an-env-var-in-the-workflow-editor).
-   * IOS_PROD_DEPLOYMENT_ID
-   * ANDROID_PROD_DEPLOYMENT_ID
+4. The `id` from response in step 2, and connected app id from step 1 have to be set as the value for [Bitirse env variables](https://devcenter.bitrise.io/en/builds/environment-variables.html#setting-an-env-var-in-the-workflow-editor).
+   * IOS_PROD_DEPLOYMENT_ID - from step 2
+   * ANDROID_PROD_DEPLOYMENT_ID - from step 2
+   * IOS_CONNECTED_APP_ID - from step 1
+   * ANDROID_CONNECTED_APP_ID - from step 1
 
 
 ## Creating a new Release
