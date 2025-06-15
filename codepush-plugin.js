@@ -298,7 +298,7 @@ const withAndroidStrings = (config, options) => {
       setString('CodePushDeploymentKey', options.android.CodePushDeploymentKey);
     }
     if (options.android?.CodePushServerURL) {
-      setString('CodePushServerURL', options.android.CodePushServerURL);
+      setString('CodePushServerUrl', options.android.CodePushServerURL);
     }
     return config;
   });
