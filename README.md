@@ -1,4 +1,4 @@
-An Example React Native Expo Project that uses Bitrise CodePush Server
+An Example React Native Expo Project that uses Bitrise CodePush Server, updated
 
 ### Setup
 
