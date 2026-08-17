@@ -14,7 +14,7 @@ import {
 import codePush from '@code-push-next/react-native-code-push';
 
 function App() {
-  // Log current package information on app start
+  // Log current package information on app start change
   useEffect(() => {
     // Add custom error handler
     const originalConsoleError = console.error.bind(console);
